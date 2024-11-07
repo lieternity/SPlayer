@@ -8,6 +8,7 @@
           <SongListCard
             :data="musicStore.dailySongsData.list"
             :title="dailySongsTitle"
+            :height="90"
             description="根据你的音乐口味 · 每日更新"
             size="small"
             @click="router.push({ name: 'daily-songs' })"
@@ -15,6 +16,7 @@
           <!-- 我喜欢的音乐 -->
           <SongListCard
             :data="dataStore.likeSongsList.data"
+            :height="90"
             title="我喜欢的音乐"
             description="发现你独特的音乐品味"
             size="small"
@@ -34,11 +36,6 @@
           <n-text>{{ item.name }}</n-text>
           <SvgIcon v-if="item.path" :size="26" name="Right" />
         </n-h3>
-        <!-- <n-button :focusable="false" quaternary circle>
-          <template #icon>
-            <SvgIcon name="Refresh" />
-          </template>
-        </n-button> -->
       </n-flex>
       <!-- 列表 -->
       <ArtistList v-if="item.type === 'artist'" :data="item.list" :loading="true" />
@@ -86,7 +83,7 @@ const dailySongsTitle = computed(() => {
   const day = new Date().getDate();
   return h("div", { class: "date" }, [
     h("div", { class: "date-icon" }, [
-      h(SvgIcon, { name: "Calendar-Empty", size: 30 }),
+      h(SvgIcon, { name: "Calendar-Empty", size: 30, depth: 2 }),
       h(NText, null, () => day),
     ]),
     h(NText, { class: "name" }, () => ["每日推荐"]),

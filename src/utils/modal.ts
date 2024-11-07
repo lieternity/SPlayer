@@ -4,7 +4,7 @@ import { isLogin } from "./auth";
 import { isArray, isFunction } from "lodash-es";
 import { useDataStore } from "@/stores";
 import router from "@/router";
-import Login from "@/components/Modal/Login.vue";
+import Login from "@/components/Modal/Login/Login.vue";
 import JumpArtist from "@/components/Modal/JumpArtist.vue";
 import UserAgreement from "@/components/Modal/UserAgreement.vue";
 import SongInfoEditor from "@/components/Modal/SongInfoEditor.vue";
@@ -101,7 +101,7 @@ export const openSongInfoEditor = (song: SongType) => {
 // 添加到歌单
 export const openPlaylistAdd = (data: SongType[], isLocal: boolean) => {
   if (!data.length) return window.$message.warning("请正确选择歌曲");
-  if (!isLogin()) return openUserLogin();
+  if (!isLogin() && !isLocal) return openUserLogin();
   const modal = window.$modal.create({
     preset: "card",
     transformOrigin: "center",
@@ -118,8 +118,9 @@ export const openPlaylistAdd = (data: SongType[], isLocal: boolean) => {
  * 开启批量操作
  * @param data 歌曲列表
  * @param isLocal 是否为本地音乐
+ * @param playListId 歌单 id
  */
-export const openBatchList = (data: SongType[], isLocal: boolean) => {
+export const openBatchList = (data: SongType[], isLocal: boolean, playListId?: number) => {
   window.$modal.create({
     preset: "card",
     transformOrigin: "center",
@@ -128,7 +129,7 @@ export const openBatchList = (data: SongType[], isLocal: boolean) => {
       maxWidth: "70vw",
     },
     title: "批量操作",
-    content: () => h(batchList, { data, isLocal }),
+    content: () => h(batchList, { data, isLocal, playListId }),
   });
 };
 
@@ -175,7 +176,7 @@ export const openUpdatePlaylist = (id: number, data: CoverType, func: () => Prom
         onSuccess: () => {
           modal.destroy();
           // 触发回调
-          isFunction(func) && func();
+          if (isFunction(func)) func();
         },
       });
     },

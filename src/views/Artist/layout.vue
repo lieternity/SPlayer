@@ -26,7 +26,7 @@
           />
         </div>
         <div class="data">
-          <div class="name">
+          <div class="name text-hidden">
             <n-text class="name-text">{{ artistDetailData.name || "未知艺术家" }}</n-text>
             <n-text v-if="artistDetailData?.alia" class="name-alias" depth="3">
               {{ artistDetailData.alia || "未知艺术家" }}
@@ -89,7 +89,13 @@
                 </template>
                 播放
               </n-button>
-              <n-button :focusable="false" strong secondary round>
+              <n-button
+                :focusable="false"
+                strong
+                secondary
+                round
+                @click="toLikeArtist(artistId, !isLikeArtist)"
+              >
                 <template #icon>
                   <SvgIcon :name="isLikeArtist ? 'Favorite' : 'FavoriteBorder'" />
                 </template>
@@ -140,10 +146,12 @@
 <script setup lang="ts">
 import type { DropdownOption } from "naive-ui";
 import type { ArtistType } from "@/types/main";
-import { coverLoaded, renderIcon, renderToolbar } from "@/utils/helper";
+import { coverLoaded, renderIcon } from "@/utils/helper";
+import { renderToolbar } from "@/utils/meta";
 import { artistDetail } from "@/api/artist";
 import { formatArtistsList } from "@/utils/format";
 import { useDataStore, useSettingStore } from "@/stores";
+import { toLikeArtist } from "@/utils/auth";
 import ArtistSongs from "./songs.vue";
 
 const router = useRouter();

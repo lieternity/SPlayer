@@ -138,7 +138,14 @@
                 </template>
                 编辑歌单
               </n-button>
-              <n-button v-else :focusable="false" strong secondary round>
+              <n-button
+                v-else
+                :focusable="false"
+                strong
+                secondary
+                round
+                @click="toLikePlaylist(playlistId, !isLikePlaylist)"
+              >
                 <template #icon>
                   <SvgIcon :name="isLikePlaylist ? 'Favorite' : 'FavoriteBorder'" />
                 </template>
@@ -187,8 +194,8 @@
         :loading="loading"
         :height="songListHeight"
         :playListId="playlistId"
-        hidden-padding
         @scroll="listScroll"
+        @removeSong="removeSong"
       />
       <n-empty
         v-else
@@ -210,13 +217,14 @@ import type { DropdownOption, MessageReactive } from "naive-ui";
 import { songDetail } from "@/api/song";
 import { playlistDetail, playlistAllSongs, deletePlaylist } from "@/api/playlist";
 import { formatCoverList, formatSongsList } from "@/utils/format";
-import { coverLoaded, formatNumber, fuzzySearch, renderIcon, renderToolbar } from "@/utils/helper";
-import { isLogin, updateUserLikePlaylist } from "@/utils/auth";
+import { coverLoaded, formatNumber, fuzzySearch, renderIcon } from "@/utils/helper";
+import { renderToolbar } from "@/utils/meta";
+import { isLogin, toLikePlaylist, updateUserLikePlaylist } from "@/utils/auth";
 import { debounce } from "lodash-es";
 import { useDataStore, useStatusStore } from "@/stores";
 import { openBatchList, openUpdatePlaylist } from "@/utils/modal";
-import player from "@/utils/player";
 import { formatTimestamp } from "@/utils/time";
+import player from "@/utils/player";
 
 const router = useRouter();
 const dataStore = useDataStore();
@@ -290,7 +298,12 @@ const moreOptions = computed<DropdownOption[]>(() => [
     label: "批量操作",
     key: "batch",
     props: {
-      onClick: () => openBatchList(playlistDataShow.value, false),
+      onClick: () =>
+        openBatchList(
+          playlistDataShow.value,
+          false,
+          isUserPlaylist.value ? playlistId.value : undefined,
+        ),
     },
     icon: renderIcon("Batch"),
   },
@@ -351,7 +364,7 @@ const handleOnlinePlaylist = async (id: number, getList: boolean, refresh: boole
     return;
   }
   // 如果已登录且歌曲数量少于 800，直接加载所有歌曲
-  if (isLogin() && (playlistDetailData.value?.count as number) < 800) {
+  if (isLogin() === 1 && (playlistDetailData.value?.count as number) < 800) {
     const ids: number[] = detail.privileges.map((song: any) => song.id as number);
     const result = await songDetail(ids);
     playlistData.value = formatSongsList(result.songs);
@@ -370,7 +383,7 @@ const getPlaylistAllSongs = async (
 ) => {
   loading.value = true;
   // 加载提示
-  loadingMsgShow(!refresh);
+  loadingMsgShow(!refresh, count);
   // 循环获取
   let offset: number = 0;
   const limit: number = 500;
@@ -402,8 +415,9 @@ const clearInput = () => {
 };
 
 // 加载提示
-const loadingMsgShow = (show: boolean = true) => {
+const loadingMsgShow = (show: boolean = true, count?: number) => {
   if (show) {
+    if (count && count <= 800) return;
     loadingMsg.value?.destroy();
     loadingMsg.value = window.$message.loading("该歌单歌曲数量过多，请稍等", {
       duration: 0,
@@ -451,6 +465,12 @@ const toDeletePlaylist = async () => {
       }
     },
   });
+};
+
+// 删除指定索引歌曲
+const removeSong = (ids: number[]) => {
+  if (!playlistData.value) return;
+  playlistData.value = playlistData.value.filter((song) => !ids.includes(song.id));
 };
 
 // 编辑歌单
